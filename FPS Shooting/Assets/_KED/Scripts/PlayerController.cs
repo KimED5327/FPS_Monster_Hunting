@@ -82,19 +82,18 @@ public class PlayerController : MonoBehaviour
 
     void Spin()
     {
-        float dirX = Input.GetAxisRaw("Mouse X");
-        float dirY = Input.GetAxisRaw("Mouse Y");
+        float dirX = Input.GetAxis("Mouse X");
+        float dirY = Input.GetAxis("Mouse Y");
 
         // 몸체 좌우 회전
         Vector3 dir = new Vector3(dirX, dirY, 0f);
-        currentAngleY += dir.x * spinSpeed * Time.deltaTime;
+        currentAngleY += dir.x * spinSpeed * Time.fixedDeltaTime;
         transform.localEulerAngles = new Vector3(0f, currentAngleY, 0f);
 
         // 캠 상하 회전
         float t_reverse = (isFlip) ? -1f : 1f;
-        currentAngleX += dir.y * spinSpeed * t_reverse * Time.deltaTime;
-        currentAngleX = (currentAngleX >= limitAngleMaxX) ? limitAngleMaxX : currentAngleX;
-        currentAngleX = (currentAngleX <= limitAngleMinX) ? limitAngleMinX : currentAngleX;
+        currentAngleX += dir.y * spinSpeed * t_reverse * Time.fixedDeltaTime;
+        currentAngleX = Mathf.Clamp(currentAngleX, limitAngleMinX, limitAngleMaxX);
         cam.transform.localEulerAngles = new Vector3(currentAngleX, 0f, 0f);
 
         // 손
@@ -111,11 +110,13 @@ public class PlayerController : MonoBehaviour
             ApplyGravity();
     }
 
+
     void StickToGround()
     {
         isGround = true;
         curVelocityY = 0;
     }
+
 
     void ApplyGravity()
     {
@@ -126,6 +127,7 @@ public class PlayerController : MonoBehaviour
 
         theController.Move(transform.up * -curVelocityY * Time.deltaTime);
     }
+
 
     void Jump()
     {
