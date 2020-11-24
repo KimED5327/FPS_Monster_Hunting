@@ -24,9 +24,6 @@ public class PlayerController : MonoBehaviour
     [Header("Ground Layer")]
     [SerializeField] LayerMask layerMask = 1;
 
-    [Header("Handle Angle")]
-    [SerializeField] Transform goHandle = null;
-    [SerializeField] float ratioY = 0.5f;
 
     float currentAngleY;
     float currentAngleX;
@@ -74,10 +71,8 @@ public class PlayerController : MonoBehaviour
         // 달리기
         float applySpeed = (Input.GetKey(KeyCode.LeftShift)) ? moveSpeed + runSpeed : moveSpeed;
 
-        if(dir.z != 0)
-            theController.Move(transform.forward * dir.z * applySpeed * Time.deltaTime);
-        if(dir.x != 0)
-            theController.Move(transform.right * dir.x * applySpeed * Time.deltaTime);
+        dir = cam.transform.TransformDirection(dir);
+        theController.Move(dir * applySpeed * Time.deltaTime);
     }
 
     void Spin()
@@ -86,24 +81,20 @@ public class PlayerController : MonoBehaviour
         float dirY = Input.GetAxis("Mouse Y");
 
         // 몸체 좌우 회전
-        Vector3 dir = new Vector3(dirX, dirY, 0f);
-        currentAngleY += dir.x * spinSpeed * Time.fixedDeltaTime;
+        currentAngleY += dirX * spinSpeed * Time.fixedDeltaTime;
         transform.localEulerAngles = new Vector3(0f, currentAngleY, 0f);
 
         // 캠 상하 회전
         float t_reverse = (isFlip) ? -1f : 1f;
-        currentAngleX += dir.y * spinSpeed * t_reverse * Time.fixedDeltaTime;
+        currentAngleX += dirY * spinSpeed * t_reverse * Time.fixedDeltaTime;
         currentAngleX = Mathf.Clamp(currentAngleX, limitAngleMinX, limitAngleMaxX);
         cam.transform.localEulerAngles = new Vector3(currentAngleX, 0f, 0f);
 
-        // 손
-        goHandle.localEulerAngles = new Vector3(currentAngleX * ratioY, 0f, 0f);
     }
 
 
     void CheckGround()
     {
-        // 상승 중이 아닌 경우에 바닥 판정 체크
         if (curVelocityY >= 0 && Physics.Raycast(transform.position, Vector3.down, rayDistance, layerMask))
             StickToGround();
         else
@@ -121,11 +112,11 @@ public class PlayerController : MonoBehaviour
     void ApplyGravity()
     {
         isGround = false;
-        curVelocityY += fallingDownSpeed * Time.deltaTime;
-        if (curVelocityY > limitFallSpeed)
+        curVelocityY -= fallingDownSpeed * Time.deltaTime;
+        if (curVelocityY <= limitFallSpeed)
             curVelocityY = limitFallSpeed;
 
-        theController.Move(transform.up * -curVelocityY * Time.deltaTime);
+        theController.Move(transform.up * curVelocityY * Time.deltaTime);
     }
 
 
@@ -135,7 +126,7 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                curVelocityY = -jumpForce;
+                curVelocityY = jumpForce;
             }
         }
     }
