@@ -32,9 +32,9 @@ public class Arrow : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         myRigid.useGravity = false;
+        GetComponent<Collider>().enabled = false;
         myRigid.velocity = Vector3.zero;
         myRigid.angularVelocity = Vector3.zero;
-        GetComponent<Collider>().enabled = false;
         transform.position = collision.GetContact(0).point;
         Destroy(gameObject, 5f);
     }

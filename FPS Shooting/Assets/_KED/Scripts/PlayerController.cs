@@ -71,8 +71,9 @@ public class PlayerController : MonoBehaviour
         // 달리기
         float applySpeed = (Input.GetKey(KeyCode.LeftShift)) ? moveSpeed + runSpeed : moveSpeed;
 
-        dir = cam.transform.TransformDirection(dir);
+        dir = transform.TransformDirection(dir);
         theController.Move(dir * applySpeed * Time.deltaTime);
+
     }
 
     void Spin()
@@ -95,7 +96,7 @@ public class PlayerController : MonoBehaviour
 
     void CheckGround()
     {
-        if (curVelocityY >= 0 && Physics.Raycast(transform.position, Vector3.down, rayDistance, layerMask))
+        if (curVelocityY <= 0 && Physics.Raycast(transform.position, Vector3.down, rayDistance, layerMask))
             StickToGround();
         else
             ApplyGravity();
