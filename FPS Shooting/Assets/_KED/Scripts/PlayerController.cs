@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float spinSpeed = 10f;
     [SerializeField] float fallingDownSpeed = 3.81f;
     [SerializeField] float jumpForce = 5f;
+    float curSpeed;
+
 
     [Header("Limit")]
     [SerializeField] float limitAngleMinX = -45f;
@@ -35,9 +37,13 @@ public class PlayerController : MonoBehaviour
     // Component
     Camera cam;
     CharacterController theController;
-    
+    Crosshair theCrosshair;
+    PlayerStatus theStatus;
+
     void Start()
     {
+        theStatus = GetComponent<PlayerStatus>();
+        theCrosshair = GetComponent<Crosshair>();
         theController = GetComponent<CharacterController>();
         cam = Camera.main;
 
@@ -53,7 +59,10 @@ public class PlayerController : MonoBehaviour
     {
         Move();
         Spin();
+        UpdateCrosshairState();
     }
+
+
 
     void FixedUpdate()
     {
@@ -63,16 +72,19 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
+        curSpeed = 0;
+
         float dirX = Input.GetAxisRaw("Horizontal");
         float dirZ = Input.GetAxisRaw("Vertical");
 
         Vector3 dir = new Vector3(dirX, 0, dirZ).normalized;
 
         // 달리기
-        float applySpeed = (Input.GetKey(KeyCode.LeftShift)) ? moveSpeed + runSpeed : moveSpeed;
+        if(dir != Vector3.zero)
+            curSpeed = (Input.GetKey(KeyCode.LeftShift)) ? moveSpeed + runSpeed : moveSpeed;
 
         dir = transform.TransformDirection(dir);
-        theController.Move(dir * applySpeed * Time.deltaTime);
+        theController.Move(dir * curSpeed * Time.deltaTime);
 
     }
 
@@ -93,6 +105,19 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    void UpdateCrosshairState()
+    {
+        theCrosshair.StandState();
+
+        if (Mathf.Abs(curVelocityY) >= 0.1f)
+            theCrosshair.JumpState();
+        else if (curSpeed > runSpeed) {
+            theCrosshair.RunState();
+            theStatus.DecreaseCurSp(1);
+        }
+        else if (curSpeed > 0.1f)
+            theCrosshair.WalkState();
+    }
 
     void CheckGround()
     {

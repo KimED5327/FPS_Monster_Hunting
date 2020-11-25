@@ -9,6 +9,7 @@ public class Arrow : MonoBehaviour
 
     Rigidbody myRigid;
 
+
     public void SetArrow(float p_speed)
     {
         speed = p_speed;

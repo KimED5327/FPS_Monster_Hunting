@@ -2,14 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bow : MonoBehaviour
+public class Bow : RangedWeapon
 {
-    [Header("Ammo")]
-    [SerializeField] float reloadTime = 1.0f;
-    [SerializeField] int magazineMax = 1;
-    [SerializeField] int totalAmmoMax = 10;
-    int curAmmo;
-    int curTotalAmmo;
 
 
     [Header("Arrow Speed")]
@@ -24,47 +18,38 @@ public class Bow : MonoBehaviour
     [SerializeField] GameObject goArrowShow = null;
 
     [Header("ArrowPos")]
-    [SerializeField] Transform tfArrowReloadPos = null;
     [SerializeField] Transform tfArrowOriginPos = null;
     [SerializeField] Transform tfArrowFullPowerPos = null;
 
     [Header("FOV")]
-    [SerializeField] float targetFov = 50;
-    float originFov;
-    Camera cam;
+    [SerializeField] float targetFov = 50f;
+    float originFov = 0f;
+
 
     bool isGrabArrow = false;
     bool isSettingArrow = false;
 
-    private void Awake()
-    {
-        cam = Camera.main;
-        originFov = cam.fieldOfView;
-        curAmmo = magazineMax;
-        curTotalAmmo = magazineMax;
-    }
+
 
     void OnEnable()
     {
         goArrowShow.SetActive(false);
 
-        AmmoManager.instance.SetAmmoUI(curAmmo, 1, curTotalAmmo);
-        TryReload(false);
+        if(originFov == 0f)
+            originFov = cam.fieldOfView;
 
+        TryReload();
     }
 
-    void Update()
+    override protected void Update()
     {
-        if (Input.GetMouseButton(0) && isSettingArrow && curAmmo > 0)
-            ReadyToFire();
-
-        if (Input.GetMouseButtonUp(0) && isGrabArrow && isSettingArrow)
-            FireArrow();
+        base.Update();
     }
+
+
 
     void ReadyToFire()
     {
-        isGrabArrow = true;
         StopAllCoroutines();
         goArrowShow.transform.position = Vector3.Lerp(goArrowShow.transform.position, tfArrowFullPowerPos.position, 0.03f);
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, 0.03f);
@@ -72,70 +57,63 @@ public class Bow : MonoBehaviour
         arrowSpeed += pullSpeed * Time.deltaTime;
         if (arrowSpeed >= fireSpeedMax)
             arrowSpeed = fireSpeedMax;
-
     }
 
-    void FireArrow()
+
+    protected override void BulletCreate()
     {
-        cam.fieldOfView = originFov;
         isGrabArrow = false;
         isSettingArrow = false;
+        cam.fieldOfView = originFov;
+
         goArrowShow.SetActive(false);
+
         GameObject t_arrow = Instantiate(goArrowPrefab, goArrowShow.transform.position, goArrowShow.transform.rotation);
         t_arrow.GetComponent<Arrow>().SetArrow(arrowSpeed);
 
-        curAmmo--;
-        AmmoManager.instance.SetAmmoUI(curAmmo, 1, curTotalAmmo);
-
-        TryReload(true);
+        HUDWeapon.instance.SetAmmoUI(curMagazineAmmo, 1, curTotalAmmo);
     }
 
-    void TryReload(bool isMinus)
+
+    override protected void ReloadFinish()
     {
-        StopAllCoroutines();
-        if (curTotalAmmo > 0)
-            StartCoroutine(ReloadArrowCo(isMinus));
+        // 가진 총알이 부족하면 가진만큼만 재장전하고 그렇지 않으면 전부 재장전
+        int t_reloadBulletCount = (curTotalAmmo >= magazineAmmoMax)
+                                ? magazineAmmoMax
+                                : magazineAmmoMax - curTotalAmmo;
+
+        curTotalAmmo -= t_reloadBulletCount;
+        curMagazineAmmo = t_reloadBulletCount;
+
+        HUDWeapon.instance.SetAmmoUI(GetCurAmmo(), GetMagazineMax(), GetTotalAmmo());
+
+        goArrowShow.SetActive(true);
+        goArrowShow.transform.position = tfArrowOriginPos.position;
+        arrowSpeed = fireSpeedMin;
+
+        isSettingArrow = true;
+
+        isReload = false;
+    }
+
+
+    protected override void OnMouseButtonLeftDown()
+    {
+        if (isSettingArrow && curMagazineAmmo > 0)
+            isGrabArrow = true;
         else
-            Debug.Log("화살 부족");
+            TryReload();
     }
 
-    IEnumerator ReloadArrowCo(bool isMinus = false)
+    protected override void OnMouseButtonLeft()
     {
-        if (curTotalAmmo > 0)
-        {
-            goArrowShow.transform.position = tfArrowReloadPos.position;
-            goArrowShow.SetActive(true);
-
-            yield return new WaitForSeconds(reloadTime);
-            if (isMinus)
-            {
-                curTotalAmmo--;
-                curAmmo = 1;
-            }
-
-            AmmoManager.instance.SetAmmoUI(curAmmo, 1, curTotalAmmo);
-            arrowSpeed = fireSpeedMin;
-
-            isSettingArrow = true;
-
-            while (true)
-            {
-                if (goArrowShow == null) break;
-
-                goArrowShow.transform.position = Vector3.Lerp(goArrowShow.transform.position, tfArrowOriginPos.position, 0.05f);
-                yield return null;
-            }
-
-        }
-
+        if(isGrabArrow)
+            ReadyToFire();
     }
 
-
-
-    public void SetTotalBullet(int p_value)
+    protected override void OnMouseButtonLeftUp()
     {
-        curTotalAmmo += p_value;
-        if (curTotalAmmo >= totalAmmoMax)
-            curTotalAmmo = totalAmmoMax;
+        if(isGrabArrow)
+            Fire();
     }
 }
