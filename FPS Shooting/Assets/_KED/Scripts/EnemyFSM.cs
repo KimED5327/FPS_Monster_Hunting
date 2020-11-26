@@ -30,7 +30,8 @@ public class EnemyFSM : MonoBehaviour
     Vector3 tfOrigin;
 
     // Damaged
-
+    [SerializeField] float chaseTime = 3f;
+    float curChaseCount = 0f;
 
     // Die
     [SerializeField] float destroyWaitTime = 2f;
@@ -41,6 +42,9 @@ public class EnemyFSM : MonoBehaviour
     Animator myAnim;
 
     bool isDead = false;
+    bool isChase = false;
+
+
     const string IDLE = "Idle";
     const string MOVE = "Move";
     const string ATTACK = "Attack";
@@ -67,6 +71,20 @@ public class EnemyFSM : MonoBehaviour
     {
         if (!isDead)
         {
+
+
+            if (isChase)
+            {
+                Move();
+                curChaseCount += Time.deltaTime;
+                if(curChaseCount >= chaseTime)
+                {
+                    curChaseCount = 0f;
+                    isChase = false;
+                }
+                return;
+            }
+
             switch (state)
             {
                 case State.Idle:
@@ -165,6 +183,8 @@ public class EnemyFSM : MonoBehaviour
     {
         if (!isDead)
         {
+            isChase = true;
+            curChaseCount = 0;
             theStatus.DecreaseHp(p_value);
             if (theStatus.GetCurHp() <= 0)
                 Die();
