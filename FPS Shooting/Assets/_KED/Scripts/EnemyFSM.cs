@@ -11,37 +11,79 @@ public class EnemyFSM : MonoBehaviour
 
     State state;
 
-    // Start is called before the first frame update
-    void Start()
+    Transform tfTarget;
+
+    // IDLE
+    [SerializeField] float searchDistance = 7f;
+
+    // Move
+    [SerializeField] float moveSpeed = 3f;
+    [SerializeField] float attackDistance = 1f;
+
+    // Attack
+    [SerializeField] int damage = 5;
+    [SerializeField] float attackInterval = 2f;
+    [SerializeField] float applyDamageDelay = 0.5f;
+    float curAttackTime = 0f;
+
+    // Return
+    Vector3 tfOrigin;
+
+    // Damaged
+
+
+    // Die
+    [SerializeField] float destroyWaitTime = 2f;
+
+
+    Status theStatus;
+    CharacterController theController;
+    Animator myAnim;
+
+    bool isDead = false;
+    const string IDLE = "Idle";
+    const string MOVE = "Move";
+    const string ATTACK = "Attack";
+    const string DAMAGE = "Damage";
+    const string DIE = "Die";
+
+
+    private void Awake()
     {
-        state = State.Idle;
+        myAnim = GetComponent<Animator>();
+        theStatus = GetComponent<Status>();
+        theController = GetComponent<CharacterController>();
     }
 
-    // Update is called once per frame
+
+    void Start()
+    {
+        tfOrigin = transform.position;
+        state = State.Idle;
+        tfTarget = FindObjectOfType<PlayerController>().transform;
+    }
+
     void Update()
     {
-        switch (state)
+        if (!isDead)
         {
-            case State.Idle:
-                Idle();
-                break;
-            case State.Move:
-                Move();
-                break;
-            case State.Attack:
-                Attack();
-                break;
-            case State.Return:
-                Return();
-                break;
-            case State.Damaged:
-                Damaged();
-                break;
-            case State.Die:
-                Die();
-                break;
-            default:
-                break;
+            switch (state)
+            {
+                case State.Idle:
+                    Idle();
+                    break;
+                case State.Move:
+                    Move();
+                    break;
+                case State.Attack:
+                    Attack();
+                    break;
+                case State.Return:
+                    Return();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -49,38 +91,107 @@ public class EnemyFSM : MonoBehaviour
     void Idle()
     {
 
+        if((tfTarget.position - transform.position).magnitude <= searchDistance)
+        {
+            myAnim.SetBool(MOVE, true);
+            state = State.Move;
+        }
+
     }
 
 
     void Move()
     {
+        Vector3 t_dir = (tfTarget.position - transform.position).normalized;
+        theController.Move(t_dir * moveSpeed * Time.deltaTime);
+        transform.forward = t_dir;
+
+        if ((transform.position - tfTarget.position).magnitude <= attackDistance)
+        {
+
+            myAnim.SetBool(MOVE, false);
+            state = State.Attack;
+        }
+        else if ((tfTarget.position - transform.position).magnitude  >= searchDistance)
+        {
+            myAnim.SetBool(MOVE, true);
+            state = State.Return;
+        }
 
     }
 
     void Attack()
     {
+        curAttackTime += Time.deltaTime;
+        if (curAttackTime >= attackInterval)
+        {
+            curAttackTime = 0f;
+            Invoke(nameof(PlayerHit), applyDamageDelay);
+            myAnim.SetTrigger(ATTACK);
+        }
 
+        if ((transform.position - tfTarget.position).magnitude >= attackDistance)
+        {
+            myAnim.SetBool(MOVE, true);
+            state = State.Move;
+        }
     }
 
+    void PlayerHit()
+    {
+        tfTarget.GetComponent<Status>().DecreaseHp(damage);
+    }
 
     void Return()
     {
+        Vector3 t_dir = (tfOrigin - transform.position).normalized;
+        theController.Move(t_dir * moveSpeed * Time.deltaTime);
+        transform.forward = t_dir;
 
+        if ((transform.position - tfTarget.position).magnitude <= searchDistance)
+        {
+            myAnim.SetBool(MOVE, true);
+            state = State.Move;
+        }
+
+        if ((transform.position - tfTarget.position).sqrMagnitude <= 0.1f)
+        {
+            myAnim.SetBool(MOVE, false);
+            state = State.Idle;
+        }
     }
 
-    void Damaged()
+    public void Damage(int p_value)
     {
-        // 코루틴
-        // 체력 1 > 0 일때만 피격
-        // Any State
+        if (!isDead)
+        {
+            theStatus.DecreaseHp(p_value);
+            if (theStatus.GetCurHp() <= 0)
+                Die();
+            else
+            {   
+                if(IsPlaying(IDLE))
+                    myAnim.SetTrigger(DAMAGE);
+            }
+
+            Debug.Log("피격! " + p_value + " 의 데미지 !");
+        }
     }
 
 
     void Die()
     {
-        // 코루틴
-        // 체력 0 이하
-        // 몬스터 오브젝트 삭제
-        // Any State
+        isDead = true;
+        myAnim.SetTrigger(DIE);
+        Destroy(gameObject, destroyWaitTime);
+    }
+
+    bool IsPlaying(string stateName)
+    {
+        if (myAnim.GetCurrentAnimatorStateInfo(0).IsName(stateName) &&
+                myAnim.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+            return true;
+        else
+            return false;
     }
 }

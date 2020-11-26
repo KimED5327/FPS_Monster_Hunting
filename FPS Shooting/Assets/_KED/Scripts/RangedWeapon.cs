@@ -18,17 +18,24 @@ public abstract class RangedWeapon : Weapon
     [Header("Accuracy"), Range(-0.1f, 0.3f)]
     [SerializeField] protected float accuracy = 0.05f;
 
+    [Header("Reload")]
+    [SerializeField] protected float reloadTime = 2f;
+
     // flag
     protected bool canFire = true;
     protected bool isReload = false;
 
     override protected void Update()
     {
-        CalcFireRate();     // Calculate a next fire time.
-        base.Update();      // Process a Left Mouse Button
-        
-        if (Input.GetKeyDown(KeyCode.R))
-            TryReload();
+        if (!isReload)
+        {
+            CalcFireRate();     // Calculate a next fire time.
+            base.Update();      // Process a Left Mouse Button.
+
+            if (Input.GetKeyDown(KeyCode.R))
+                TryReload();
+        }
+
     }
 
 
@@ -86,7 +93,9 @@ public abstract class RangedWeapon : Weapon
             curTotalAmmo += curMagazineAmmo;
             HUDWeapon.instance.SetAmmoUI(GetCurAmmo(), GetMagazineMax(), GetTotalAmmo());
 
-            ReloadFinish();
+            theWeaponManager.ReloadPlay();
+
+            Invoke(nameof(ReloadFinish), reloadTime);
         }
     }
 

@@ -40,6 +40,9 @@ public class Gun : RangedWeapon
         Vector3 dir = (cam.transform.forward + (cam.transform.up) * t_randomY + (cam.transform.right) * t_randomX).normalized;
         if (Physics.Raycast(cam.transform.position, dir, out RaycastHit hit, 1000f))
         {
+            if (hit.transform.CompareTag("Enemy"))
+                hit.transform.GetComponent<EnemyFSM>().Damage(damage);
+
             GameObject t_effect = Instantiate(goImpactEffect, hit.point, Quaternion.Euler(hit.normal));
             Destroy(t_effect, 5f);
         }

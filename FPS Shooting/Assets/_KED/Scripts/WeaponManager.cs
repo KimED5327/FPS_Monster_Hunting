@@ -13,6 +13,8 @@ public class WeaponManager : MonoBehaviour
 
     const string PUT_IN = "PutIn";
     const string TAKE_OUT = "TakeOut";
+    const string RELOAD = "Reload";
+
     const float weaponSwapWaitTime = 0.15f;
 
     Crosshair theCrosshair;
@@ -86,6 +88,10 @@ public class WeaponManager : MonoBehaviour
             HUDWeapon.instance.SetWeaponName(t_weapon.GetWeaponName());
         }
         goCurrentWeapon.GetComponent<Weapon>().SetActivate(true);
+    }
 
+    public void ReloadPlay()
+    {
+        myAnim.SetTrigger(RELOAD);
     }
 }

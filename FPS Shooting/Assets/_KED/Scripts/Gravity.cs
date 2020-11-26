@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class Gravity : MonoBehaviour
 {
+    [Header("AirType")]
+    [SerializeField] bool isAir = false;
+    [SerializeField] float airHeight = 1.5f;
+
     [Header("Gravity")]
     [SerializeField] float fallingDownSpeed = 3.81f;
 
@@ -32,8 +36,10 @@ public class Gravity : MonoBehaviour
         theStatus = GetComponent<PlayerStatus>();
         theController = GetComponent<CharacterController>();
 
-        halfHeight = theController.height * 0.5f;
+        halfHeight = theController.height;
         rayDistance = halfHeight + 0.1f;
+        if (isAir)
+            rayDistance += airHeight;
     }
 
     private void FixedUpdate()
@@ -43,30 +49,33 @@ public class Gravity : MonoBehaviour
 
     void CheckGround()
     {
-        if (curVelocityY <= 0 && (Physics.Raycast(transform.position, Vector3.down, rayDistance, layerMask) || theController.isGrounded))
-            StickToGround();
+        if (curVelocityY <= 0 && Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, rayDistance, layerMask))
+            StickToGround(hit);
         else
             ApplyGravity();
     }
 
 
-    void StickToGround()
+    void StickToGround(RaycastHit hit)
     {
-
-        if (priorFallPosY - fallPosY < priorFallPosY)
+        if (!isAir)
         {
-            float t_fallDistance = priorFallPosY - fallPosY;
-
-            for (int i = fallPosYs.Length - 1; i >= 0; i--)
+            if (priorFallPosY - fallPosY < priorFallPosY)
             {
-                if (t_fallDistance >= fallPosYs[i])
+                float t_fallDistance = priorFallPosY - fallPosY;
+                for (int i = fallPosYs.Length - 1; i >= 0; i--)
                 {
-                    theStatus.DecreaseHp(fallDamages[i]);
-
-                    break;
+                    if (t_fallDistance >= fallPosYs[i])
+                    {
+                        theStatus.DecreaseHp(fallDamages[i]);
+                        break;
+                    }
                 }
             }
-
+        }
+        else
+        {
+            transform.position = new Vector3(transform.position.x, hit.point.y + airHeight, transform.position.z);
         }
         priorFallPosY = transform.position.y;
         fallPosY = 0;
