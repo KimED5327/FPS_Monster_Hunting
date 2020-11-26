@@ -190,7 +190,7 @@ public class EnemyFSM : MonoBehaviour
                 Die();
             else
             {   
-                if(IsPlaying(IDLE))
+                if(IsPlaying(IDLE) || IsPlaying(MOVE))
                     myAnim.SetTrigger(DAMAGE);
             }
 
