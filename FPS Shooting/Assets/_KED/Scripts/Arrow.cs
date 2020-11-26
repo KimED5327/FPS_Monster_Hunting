@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
-
+    int damage;
     float speed;
 
     Rigidbody myRigid;
 
 
-    public void SetArrow(float p_speed)
+    public void SetArrow(float p_speed, int p_damage)
     {
+        damage = p_damage;
         speed = p_speed;
         myRigid.velocity = transform.forward * speed;
     }
@@ -29,7 +30,6 @@ public class Arrow : MonoBehaviour
             transform.forward = myRigid.velocity;
     }
 
-
     private void OnCollisionEnter(Collision collision)
     {
         myRigid.useGravity = false;
@@ -37,6 +37,12 @@ public class Arrow : MonoBehaviour
         myRigid.velocity = Vector3.zero;
         myRigid.angularVelocity = Vector3.zero;
         transform.position = collision.GetContact(0).point;
+
+        if (collision.transform.CompareTag("Enemy"))
+        {
+            collision.transform.GetComponent<EnemyFSM>().Damage(damage);
+            transform.SetParent(collision.transform);
+        }
         Destroy(gameObject, 5f);
     }
 }

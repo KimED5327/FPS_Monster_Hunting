@@ -172,7 +172,7 @@ public class EnemyFSM : MonoBehaviour
             state = State.Move;
         }
 
-        if ((transform.position - tfTarget.position).sqrMagnitude <= 0.1f)
+        if ((transform.position - tfTarget.position).sqrMagnitude <= 1f)
         {
             myAnim.SetBool(MOVE, false);
             state = State.Idle;
@@ -193,8 +193,6 @@ public class EnemyFSM : MonoBehaviour
                 if(IsPlaying(IDLE) || IsPlaying(MOVE))
                     myAnim.SetTrigger(DAMAGE);
             }
-
-            Debug.Log("피격! " + p_value + " 의 데미지 !");
         }
     }
 

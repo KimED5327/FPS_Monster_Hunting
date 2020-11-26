@@ -244,7 +244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: Short Bow
-  damage: 10
+  damage: 100
   weaponType: 1
   totalAmmoMax: 10
   magazineAmmoMax: 1
@@ -932,7 +932,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: M16
-  damage: 4
+  damage: 10
   weaponType: 1
   totalAmmoMax: 120
   magazineAmmoMax: 30
@@ -1125,7 +1125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: K5-Pistol
-  damage: 5
+  damage: 25
   weaponType: 1
   totalAmmoMax: 60
   magazineAmmoMax: 12
@@ -1766,12 +1766,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 957522943}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -959.99994, y: -539.8974, z: 0}
+  m_LocalScale: {x: 1.6410255, y: 1.6410255, z: 1.6410255}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_Father: {fileID: 1638677694}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
@@ -2939,6 +2939,7 @@ RectTransform:
   - {fileID: 1214276795}
   - {fileID: 716655014}
   - {fileID: 1149479926}
+  - {fileID: 957522946}
   m_Father: {fileID: 1899387300}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2978,7 +2979,7 @@ Transform:
   - {fileID: 341040297}
   - {fileID: 1055747736}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1873277290
 GameObject:

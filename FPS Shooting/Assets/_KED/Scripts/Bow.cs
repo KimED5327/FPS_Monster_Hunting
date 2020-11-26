@@ -69,7 +69,7 @@ public class Bow : RangedWeapon
         goArrowShow.SetActive(false);
 
         GameObject t_arrow = Instantiate(goArrowPrefab, goArrowShow.transform.position, goArrowShow.transform.rotation);
-        t_arrow.GetComponent<Arrow>().SetArrow(arrowSpeed);
+        t_arrow.GetComponent<Arrow>().SetArrow(arrowSpeed, damage);
 
         HUDWeapon.instance.SetAmmoUI(curMagazineAmmo, 1, curTotalAmmo);
     }

@@ -76,6 +76,8 @@ public class PlayerController : MonoBehaviour
         }
 
         dir = transform.TransformDirection(dir);
+        //transform.forward = dir;
+
         theController.Move(dir * curSpeed * Time.deltaTime);
 
     }
