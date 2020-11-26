@@ -5,14 +5,23 @@ using UnityEngine;
 public class PlayerStatus : Status
 {
 
-    [SerializeField] int maxSp =100;
+    [SerializeField] int maxSp = 100;
     int currentSp;
 
-    [SerializeField] float recoverSpTime = 0.25f;
+    [Header("Recover")]
+    [SerializeField] 
+    float recoverSpTime = 0.25f;
     float curSpTime = 0f;
-    [SerializeField] int recoverSp = 1;
+    [SerializeField] 
+    int recoverSp = 1;
 
+    [SerializeField] float recoverWaitTime = 3f;
+    float curRecoverWaitTime = 0f;
 
+    [Header("Decs Delay")]
+    [SerializeField] 
+    int decreaseCnt = 2;
+    int curDecreaseCnt = 0;
     PlayerStatusManager theStatusManager;
 
     // Start is called before the first frame update
@@ -27,20 +36,26 @@ public class PlayerStatus : Status
     void Update()
     {
         RecoverSP();
+        theStatusManager.SetSpText(currentSp);
+        theStatusManager.SetHpText(currentHp);
     }
 
     void RecoverSP()
     {
-        curSpTime += Time.deltaTime;
-        if(curSpTime >= recoverSpTime)
+        curRecoverWaitTime += Time.deltaTime;
+        if(curRecoverWaitTime >= recoverWaitTime)
         {
-            curSpTime = 0f;
-            IncreaseCurSp(recoverSp);
-            theStatusManager.SetSpText(currentSp);
+            curSpTime += Time.deltaTime;
+            if (curSpTime >= recoverSpTime)
+            {
+                curSpTime = 0f;
+                IncreaseCurSp(recoverSp);
+            }
         }
+
     }
 
-    public int GetCurSp() { return currentHp; }
+    public int GetCurSp() { return currentSp; }
     public void IncreaseCurSp(int p_value)
     {
         currentSp += p_value;
@@ -50,10 +65,17 @@ public class PlayerStatus : Status
     }
     public void DecreaseCurSp(int p_value)
     {
-        currentSp -= p_value;
-        if (currentSp < 0)
-            currentSp = 0;
-        theStatusManager.SetSpText(currentSp);
+
+        curRecoverWaitTime = 0f; // 스태미나 자동 회복 카운트 초기화
+
+        if(curDecreaseCnt++ >= decreaseCnt) // 스태미나 감소 카운트
+        {
+            curDecreaseCnt = 0;
+            currentSp -= p_value;
+            if (currentSp < 0)
+                currentSp = 0;
+            theStatusManager.SetSpText(currentSp);
+        }
     }
     public int GetMaxSp() { return maxSp; }
     public void SetMaxSp(int p_value) { maxSp = p_value; 

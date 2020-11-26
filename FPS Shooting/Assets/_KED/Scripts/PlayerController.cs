@@ -9,7 +9,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float moveSpeed = 3f;
     [SerializeField] float runSpeed = 4f;
     [SerializeField] float spinSpeed = 10f;
-    [SerializeField] float fallingDownSpeed = 3.81f;
     [SerializeField] float jumpForce = 5f;
     float curSpeed;
 
@@ -17,38 +16,29 @@ public class PlayerController : MonoBehaviour
     [Header("Limit")]
     [SerializeField] float limitAngleMinX = -45f;
     [SerializeField] float limitAngleMaxX = 45f;
-    [SerializeField] float limitFallSpeed = 9.81f;
 
 
     [Header("Option")]
     [SerializeField] bool isFlip = true;
 
-    [Header("Ground Layer")]
-    [SerializeField] LayerMask layerMask = 1;
-
 
     float currentAngleY;
     float currentAngleX;
-    float curVelocityY = 0f;    // Y Velocity
-    float rayDistance;          // 땅 탐지 광선 길이
-    float halfHeight;           // 캐릭터 사이즈의 반
-    bool isGround = false;
 
     // Component
     Camera cam;
     CharacterController theController;
     Crosshair theCrosshair;
     PlayerStatus theStatus;
+    Gravity theGravity;
 
     void Start()
     {
         theStatus = GetComponent<PlayerStatus>();
+        theGravity = GetComponent<Gravity>();
         theCrosshair = GetComponent<Crosshair>();
         theController = GetComponent<CharacterController>();
         cam = Camera.main;
-
-        halfHeight = theController.height;
-        rayDistance = halfHeight + 0.05f;
 
         currentAngleY = transform.localEulerAngles.x;
         currentAngleX = cam.transform.localEulerAngles.y;
@@ -60,14 +50,7 @@ public class PlayerController : MonoBehaviour
         Move();
         Spin();
         UpdateCrosshairState();
-    }
-
-
-
-    void FixedUpdate()
-    {
         Jump();
-        CheckGround();
     }
 
     void Move()
@@ -79,9 +62,18 @@ public class PlayerController : MonoBehaviour
 
         Vector3 dir = new Vector3(dirX, 0, dirZ).normalized;
 
-        // 달리기
-        if(dir != Vector3.zero)
-            curSpeed = (Input.GetKey(KeyCode.LeftShift)) ? moveSpeed + runSpeed : moveSpeed;
+        // 걷기
+        if (dir != Vector3.zero)
+        {
+            curSpeed = moveSpeed;
+
+            // 달리기
+            if (Input.GetKey(KeyCode.LeftShift) && theStatus.GetCurSp() > 0)
+            {
+                curSpeed += runSpeed;
+                theStatus.DecreaseCurSp(1); // sp 소모
+            }
+        }
 
         dir = transform.TransformDirection(dir);
         theController.Move(dir * curSpeed * Time.deltaTime);
@@ -109,50 +101,21 @@ public class PlayerController : MonoBehaviour
     {
         theCrosshair.StandState();
 
-        if (Mathf.Abs(curVelocityY) >= 0.1f)
+        if (Mathf.Abs(theGravity.GetVelocityY()) >= 0.1f)
             theCrosshair.JumpState();
-        else if (curSpeed > runSpeed) {
+        else if (curSpeed > runSpeed)
             theCrosshair.RunState();
-            theStatus.DecreaseCurSp(1);
-        }
         else if (curSpeed > 0.1f)
             theCrosshair.WalkState();
     }
 
-    void CheckGround()
-    {
-        if (curVelocityY <= 0 && Physics.Raycast(transform.position, Vector3.down, rayDistance, layerMask))
-            StickToGround();
-        else
-            ApplyGravity();
-    }
-
-
-    void StickToGround()
-    {
-        isGround = true;
-        curVelocityY = 0;
-    }
-
-
-    void ApplyGravity()
-    {
-        isGround = false;
-        curVelocityY -= fallingDownSpeed * Time.deltaTime;
-        if (curVelocityY <= limitFallSpeed)
-            curVelocityY = limitFallSpeed;
-
-        theController.Move(transform.up * curVelocityY * Time.deltaTime);
-    }
-
-
     void Jump()
     {
-        if (isGround)
+        if (theGravity.IsGrounded())
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                curVelocityY = jumpForce;
+                theGravity.SetVelocityY(jumpForce);
             }
         }
     }

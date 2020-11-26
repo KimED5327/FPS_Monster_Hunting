@@ -16,7 +16,7 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField] protected int damage = 0;
     [SerializeField] protected WeaponType weaponType = WeaponType.MELEE;
 
-
+    protected bool isActivate = false;
 
     protected Crosshair theCrosshair;
     protected void Awake()
@@ -28,14 +28,17 @@ public abstract class Weapon : MonoBehaviour
 
     virtual protected void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-            OnMouseButtonLeftDown();
+        if (isActivate)
+        {
+            if (Input.GetMouseButtonDown(0))
+                OnMouseButtonLeftDown();
 
-        if (Input.GetMouseButton(0))
-            OnMouseButtonLeft();
+            if (Input.GetMouseButton(0))
+                OnMouseButtonLeft();
 
-        if (Input.GetMouseButtonUp(0))
-            OnMouseButtonLeftUp();
+            if (Input.GetMouseButtonUp(0))
+                OnMouseButtonLeftUp();
+        }
     }
 
     abstract protected void OnMouseButtonLeftDown();
@@ -45,5 +48,5 @@ public abstract class Weapon : MonoBehaviour
 
     public WeaponType GetWeaponType() { return weaponType; }
     public string GetWeaponName() { return weaponName; }
-
+    public void SetActivate(bool p_flag) { isActivate = p_flag; }
 }
