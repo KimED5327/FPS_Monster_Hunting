@@ -22,22 +22,22 @@ public class PlayerStatus : Status
     [SerializeField] 
     int decreaseCnt = 2;
     int curDecreaseCnt = 0;
-    PlayerStatusManager theStatusManager;
+    HUDPlayerStatus theHUDStatus;
 
     // Start is called before the first frame update
     override protected void Start()
     {
         base.Start();
         currentSp = maxSp;
-        theStatusManager = FindObjectOfType<PlayerStatusManager>();
+        theHUDStatus = FindObjectOfType<HUDPlayerStatus>();
     }
 
     // Update is called once per frame
     void Update()
     {
         RecoverSP();
-        theStatusManager.SetSpText(currentSp);
-        theStatusManager.SetHpText(currentHp);
+        theHUDStatus.SetSpText(currentSp);
+        theHUDStatus.SetHpText(currentHp);
     }
 
     void RecoverSP()
@@ -61,7 +61,7 @@ public class PlayerStatus : Status
         currentSp += p_value;
         if (currentSp > maxSp)
             currentSp = maxSp;
-        theStatusManager.SetSpText(currentSp);
+        theHUDStatus.SetSpText(currentSp);
     }
     public void DecreaseCurSp(int p_value)
     {
@@ -74,7 +74,7 @@ public class PlayerStatus : Status
             currentSp -= p_value;
             if (currentSp < 0)
                 currentSp = 0;
-            theStatusManager.SetSpText(currentSp);
+            theHUDStatus.SetSpText(currentSp);
         }
     }
     public int GetMaxSp() { return maxSp; }

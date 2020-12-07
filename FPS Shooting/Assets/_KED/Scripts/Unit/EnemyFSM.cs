@@ -6,7 +6,7 @@ public class EnemyFSM : MonoBehaviour
 {
     public enum State
     {
-        Idle, Move, Attack, Return, Damaged, Die,
+        Idle, Move, Chase, Attack, Return, Damaged, Die
     }
 
     State state;
@@ -69,21 +69,7 @@ public class EnemyFSM : MonoBehaviour
 
     void Update()
     {
-        if (!isDead)
-        {
-
-
-            if (isChase)
-            {
-                Move();
-                curChaseCount += Time.deltaTime;
-                if(curChaseCount >= chaseTime)
-                {
-                    curChaseCount = 0f;
-                    isChase = false;
-                }
-                return;
-            }
+        if (!isDead){
 
             switch (state)
             {
@@ -93,18 +79,35 @@ public class EnemyFSM : MonoBehaviour
                 case State.Move:
                     Move();
                     break;
+                case State.Chase:
+                    Chase();
+                    break;
                 case State.Attack:
                     Attack();
                     break;
                 case State.Return:
                     Return();
                     break;
-                default:
-                    break;
             }
         }
     }
 
+    void Chase()
+    {
+        if (isChase)
+        {   
+            if (curChaseCount >= chaseTime)
+            {
+                curChaseCount = 0f;
+                isChase = false;
+            }
+            else
+            {
+                curChaseCount += Time.deltaTime;
+                Move();
+            }
+        }
+    }
 
     void Idle()
     {
@@ -126,11 +129,10 @@ public class EnemyFSM : MonoBehaviour
 
         if ((transform.position - tfTarget.position).magnitude <= attackDistance)
         {
-
             myAnim.SetBool(MOVE, false);
             state = State.Attack;
         }
-        else if ((tfTarget.position - transform.position).magnitude  >= searchDistance)
+        else if (state != State.Chase && (tfTarget.position - transform.position).magnitude  >= searchDistance)
         {
             myAnim.SetBool(MOVE, true);
             state = State.Return;
@@ -146,13 +148,15 @@ public class EnemyFSM : MonoBehaviour
             curAttackTime = 0f;
             Invoke(nameof(PlayerHit), applyDamageDelay);
             myAnim.SetTrigger(ATTACK);
+
+            if ((transform.position - tfTarget.position).magnitude >= attackDistance)
+            {
+                myAnim.SetBool(MOVE, true);
+                state = State.Move;
+            }
         }
 
-        if ((transform.position - tfTarget.position).magnitude >= attackDistance)
-        {
-            myAnim.SetBool(MOVE, true);
-            state = State.Move;
-        }
+
     }
 
     void PlayerHit()
@@ -183,8 +187,13 @@ public class EnemyFSM : MonoBehaviour
     {
         if (!isDead)
         {
-            isChase = true;
-            curChaseCount = 0;
+            if(state != State.Attack)
+            {
+                state = State.Chase;
+                isChase = true;
+                curChaseCount = 0;
+            }
+
             theStatus.DecreaseHp(p_value);
             if (theStatus.GetCurHp() <= 0)
                 Die();

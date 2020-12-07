@@ -33,11 +33,11 @@ public class Gravity : MonoBehaviour
     CharacterController theController;
     private void Awake()
     {
-        theStatus = GetComponent<PlayerStatus>();
+        theStatus = GetComponent<Status>();
         theController = GetComponent<CharacterController>();
 
-        halfHeight = theController.height;
-        rayDistance = halfHeight + 0.1f;
+        halfHeight = theController.height / 2;
+        rayDistance = halfHeight + 0.3f;
         if (isAir)
             rayDistance += airHeight;
     }
@@ -75,7 +75,8 @@ public class Gravity : MonoBehaviour
         }
         else
         {
-            transform.position = new Vector3(transform.position.x, hit.point.y + airHeight, transform.position.z);
+            if(!theStatus.IsDead())
+                transform.position = new Vector3(transform.position.x, hit.point.y + airHeight, transform.position.z);
         }
         priorFallPosY = transform.position.y;
         fallPosY = 0;

@@ -10,8 +10,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float runSpeed = 4f;
     [SerializeField] float spinSpeed = 10f;
     [SerializeField] float jumpForce = 5f;
+    [SerializeField] float accelation = 3f;
+    [SerializeField] float deAccelation = 0.1f;
+    [SerializeField] float jumpDeAccel = 0.1f;
     float curSpeed;
-
+    Vector3 moveVelocity;
 
     [Header("Limit")]
     [SerializeField] float limitAngleMinX = -45f;
@@ -28,7 +31,7 @@ public class PlayerController : MonoBehaviour
     // Component
     Camera cam;
     CharacterController theController;
-    Crosshair theCrosshair;
+    HUDCrosshair theCrosshair;
     PlayerStatus theStatus;
     Gravity theGravity;
 
@@ -36,7 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         theStatus = GetComponent<PlayerStatus>();
         theGravity = GetComponent<Gravity>();
-        theCrosshair = GetComponent<Crosshair>();
+        theCrosshair = GetComponent<HUDCrosshair>();
         theController = GetComponent<CharacterController>();
         cam = Camera.main;
 
@@ -73,12 +76,36 @@ public class PlayerController : MonoBehaviour
                 curSpeed += runSpeed;
                 theStatus.DecreaseCurSp(1); // sp 소모
             }
+            dir = transform.TransformDirection(dir);
+
+            // 가속
+            if (theGravity.IsGrounded())
+                moveVelocity = Vector3.Lerp(moveVelocity, dir * curSpeed, accelation);
+            else
+                moveVelocity = Vector3.Lerp(moveVelocity, dir * curSpeed, accelation * jumpDeAccel);
+            theController.Move(moveVelocity * Time.deltaTime);
+        }
+        // 멈추기
+        else
+        {
+
+            // 감속
+            if (Vector3.SqrMagnitude(moveVelocity) > 0.1f)
+            {
+                if (theGravity.IsGrounded())
+                    moveVelocity = Vector3.Lerp(moveVelocity, Vector3.zero, deAccelation);
+                else
+                    moveVelocity = Vector3.Lerp(moveVelocity, Vector3.zero, deAccelation * jumpDeAccel);
+
+                theController.Move(moveVelocity * Time.deltaTime);
+            }
+            // 정지
+            else
+                moveVelocity = Vector3.zero;
+            
         }
 
-        dir = transform.TransformDirection(dir);
-        //transform.forward = dir;
 
-        theController.Move(dir * curSpeed * Time.deltaTime);
 
     }
 
@@ -92,18 +119,22 @@ public class PlayerController : MonoBehaviour
         transform.localEulerAngles = new Vector3(0f, currentAngleY, 0f);
 
         // 캠 상하 회전
+        CamSpin(dirY);
+    }
+
+    void CamSpin(float p_dirY)
+    {
         float t_reverse = (isFlip) ? -1f : 1f;
-        currentAngleX += dirY * spinSpeed * t_reverse * Time.fixedDeltaTime;
+        currentAngleX += p_dirY * spinSpeed * t_reverse * Time.fixedDeltaTime;
         currentAngleX = Mathf.Clamp(currentAngleX, limitAngleMinX, limitAngleMaxX);
         cam.transform.localEulerAngles = new Vector3(currentAngleX, 0f, 0f);
-
     }
 
     void UpdateCrosshairState()
     {
         theCrosshair.StandState();
 
-        if (Mathf.Abs(theGravity.GetVelocityY()) >= 0.1f)
+        if (Mathf.Abs(theGravity.GetVelocityY()) >= 5f || !theGravity.IsGrounded())
             theCrosshair.JumpState();
         else if (curSpeed > runSpeed)
             theCrosshair.RunState();
@@ -121,4 +152,7 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+
+
+    public void SetCamY(float p_Y) { CamSpin(p_Y); }
 }

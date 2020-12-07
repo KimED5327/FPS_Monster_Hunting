@@ -18,12 +18,12 @@ public abstract class Weapon : MonoBehaviour
 
     protected bool isActivate = false;
 
-    protected Crosshair theCrosshair;
+    protected HUDCrosshair theCrosshair;
     protected WeaponManager theWeaponManager;
     protected void Awake()
     {
         theWeaponManager = FindObjectOfType<WeaponManager>();
-        theCrosshair = FindObjectOfType<Crosshair>();
+        theCrosshair = FindObjectOfType<HUDCrosshair>();
         cam = Camera.main;
     }
 

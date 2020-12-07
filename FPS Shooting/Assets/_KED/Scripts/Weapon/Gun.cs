@@ -14,10 +14,19 @@ public class Gun : RangedWeapon
     [Header("Recoil"), SerializeField] float recoilPosZ = -0.3f;
     [SerializeField] float recoilSpeed = 0.25f;
     [SerializeField] float recoilBackSpeed = 0.15f;
+    [SerializeField] float recoilUpPosY = 0.5f;
+    [SerializeField] float recoilUpSpeed = 2f;
+    [SerializeField] float recoilDownSpeed = 1f;
+    
     float originPosZ;
+
+    PlayerController thePC;
+    AudioSource theAudio;
 
     void Start()
     {
+        thePC = GetComponentsInParent<PlayerController>()[0];
+        theAudio = GetComponent<AudioSource>();
         originPosZ = transform.localPosition.z;
     }
 
@@ -31,8 +40,10 @@ public class Gun : RangedWeapon
     protected override void BulletCreate()
     {
         StopAllCoroutines();
+        StartCoroutine(GunUpRecoil());
         StartCoroutine(GunRecoil());
         psMuzzleFlash.Play();
+        theAudio.Play();
 
         float t_randomX = Random.Range(-theCrosshair.GetAccuracy(), theCrosshair.GetAccuracy());
         float t_randomY = Random.Range(-theCrosshair.GetAccuracy(), theCrosshair.GetAccuracy());
@@ -65,6 +76,28 @@ public class Gun : RangedWeapon
     protected override void OnMouseButtonLeftUp()
     {
         ;
+    }
+
+    IEnumerator GunUpRecoil()
+    {
+        float originRotX = cam.transform.localEulerAngles.x;
+        float destRotX = cam.transform.localEulerAngles.x + recoilUpPosY;
+        Vector3 myRot = cam.transform.localEulerAngles;
+
+        while(destRotX >= myRot.x)
+        {
+            myRot.x += Time.deltaTime * recoilUpSpeed;
+            thePC.SetCamY(Time.deltaTime * recoilUpSpeed);
+            yield return null;
+        }
+
+        while (originRotX <= myRot.x)
+        {
+            myRot.x -= Time.deltaTime * recoilDownSpeed;
+            thePC.SetCamY(-Time.deltaTime * recoilDownSpeed);
+            yield return null;
+        }
+
     }
 
     IEnumerator GunRecoil()

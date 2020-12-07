@@ -17,14 +17,14 @@ public class WeaponManager : MonoBehaviour
 
     const float weaponSwapWaitTime = 0.15f;
 
-    Crosshair theCrosshair;
+    HUDCrosshair theCrosshair;
     Animator myAnim;
 
     bool isFinished = true;
 
     private void Awake()
     {
-        theCrosshair = FindObjectOfType<Crosshair>();
+        theCrosshair = FindObjectOfType<HUDCrosshair>();
         myAnim = GetComponentInChildren<Animator>();
         StartCoroutine(ActiveWeapon(goCurrentWeapon));
     }

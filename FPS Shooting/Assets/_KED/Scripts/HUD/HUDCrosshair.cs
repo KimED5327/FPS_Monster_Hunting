@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Crosshair : MonoBehaviour
+public class HUDCrosshair : MonoBehaviour
 {
     const int LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3;
 

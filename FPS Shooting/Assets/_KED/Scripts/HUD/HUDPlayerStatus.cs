@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerStatusManager : MonoBehaviour
+public class HUDPlayerStatus : MonoBehaviour
 {
     [SerializeField] Text txt_HP = null;
     [SerializeField] Text txt_SP = null;

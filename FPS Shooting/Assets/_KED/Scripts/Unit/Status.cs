@@ -8,6 +8,8 @@ public class Status : MonoBehaviour
     [SerializeField] protected int maxHp = 100;
     protected int currentHp;
 
+    bool isDead = false;
+
     // Start is called before the first frame update
     virtual protected void Start()
     {
@@ -24,7 +26,11 @@ public class Status : MonoBehaviour
     {
         currentHp -= p_value;
         if (currentHp <= 0)
+        {
             currentHp = 0;
+            isDead = true;
+        }
     }
 
+    public bool IsDead() { return isDead; }
 }
